@@ -24,7 +24,7 @@ class PostStoreRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'text' => 'required|string|max:1000',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,id'
         ];
     }
 }

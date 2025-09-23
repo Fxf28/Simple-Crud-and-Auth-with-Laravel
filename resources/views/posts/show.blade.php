@@ -46,9 +46,21 @@
 
     <!-- Post Content -->
     <main class="max-w-4xl mx-auto p-4 py-8">
-        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <!-- Featured Image -->
+            @if($post->image_public_id)
+            <div class="w-full h-64 md:h-96 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <img
+                    src="{{ $post->image_url }}"
+                    width="800"
+                    height="400"
+                    class="w-full h-full object-cover"
+                    alt="{{ $post->title }}" />
+            </div>
+            @endif
+
             <!-- Post Header -->
-            <div class="border-b p-6">
+            <div class="p-6">
                 <div class="flex justify-between items-start mb-4">
                     <span class="bg-blue-500 text-white px-3 py-1 rounded text-sm">
                         {{ $post->category->name ?? 'Uncategorized' }}
@@ -66,7 +78,7 @@
             </div>
 
             <!-- Post Body -->
-            <div class="p-6 prose dark:prose-invert max-w-none">
+            <div class="px-6 pb-6 prose dark:prose-invert max-w-none">
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                     {{ $post->text }}
                 </div>
@@ -76,7 +88,7 @@
             <div class="border-t p-6">
                 <div class="flex justify-between items-center">
                     <a href="{{ route('home') }}" class="text-blue-500 hover:text-blue-600 font-medium">
-                        ← Back
+                        ← Back to Home
                     </a>
 
                     @auth
@@ -97,7 +109,6 @@
             </div>
         </article>
 
-        <!-- Navigation -->
         <!-- Navigation -->
         <div class="flex justify-between mt-8">
             @if($previousPost)

@@ -2,50 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PostCreateRequest;
 use App\Http\Requests\PostStoreRequest;
 use App\Http\Requests\PostUpdateRequest;
 use App\Models\Category;
 use App\Models\Post;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $posts = Post::with('category')   // eager load category to avoid N+1 query
+        $posts = Post::with('category')
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
         return view('posts.index', compact('posts'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $categories = Category::all();
-
         return view('posts.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(PostStoreRequest $request)
     {
-        Post::create($request->validated());
+        $data = $request->validated();
 
-        return redirect()->route('posts.index');
+        if ($request->hasFile('image')) {
+            $uploadedFile = $request->file('image');
+
+            $uploadResult = Cloudinary::uploadApi()->upload($uploadedFile->getRealPath(), [
+                'folder' => 'posts_images',
+            ]);
+
+            $data['image_url'] = $uploadResult['secure_url'];
+            $data['image_public_id'] = $uploadResult['public_id'];
+        }
+
+        Post::create($data);
+
+        return redirect()->route('posts.index')->with('success', 'Post created successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Post $post)
     {
         $previousPost = Post::where('created_at', '<', $post->created_at)
@@ -59,33 +60,58 @@ class PostController extends Controller
         return view('posts.show', compact('post', 'previousPost', 'nextPost'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Post $post)
     {
         $categories = Category::all();
-
         return view('posts.edit', compact('post', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(PostUpdateRequest $request, Post $post)
     {
-        $post->update($request->validated());
+        $data = $request->validated();
 
-        return redirect()->route('posts.index');
+        if ($request->hasFile('image')) {
+            $uploadedFile = $request->file('image');
+
+            // Hapus image lama di Cloudinary
+            if ($post->image_public_id) {
+                try {
+                    Cloudinary::uploadApi()->destroy($post->image_public_id);
+                } catch (\Exception $e) {
+                    Log::error("Cloudinary delete error: " . $e->getMessage());
+                }
+            }
+
+            // Upload file baru
+            $uploadResult = Cloudinary::uploadApi()->upload($uploadedFile->getRealPath(), [
+                'folder' => 'posts_images',
+            ]);
+
+            $data['image_url'] = $uploadResult['secure_url'];
+            $data['image_public_id'] = $uploadResult['public_id'];
+        } else {
+            // Pertahankan image_url dan image_public_id lama jika tidak ada gambar baru
+            $data['image_url'] = $post->image_url;
+            $data['image_public_id'] = $post->image_public_id;
+        }
+
+        $post->update($data);
+
+        return redirect()->route('posts.index')->with('success', 'Post updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Post $post)
     {
+        if ($post->image_public_id) {
+            try {
+                Cloudinary::uploadApi()->destroy($post->image_public_id);
+            } catch (\Exception $e) {
+                Log::error("Cloudinary delete error: " . $e->getMessage());
+            }
+        }
+
         $post->delete();
 
-        return redirect()->route('posts.index');
+        return redirect()->route('posts.index')->with('success', 'Post deleted successfully!');
     }
 }
