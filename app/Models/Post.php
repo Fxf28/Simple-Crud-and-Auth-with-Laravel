@@ -14,7 +14,8 @@ class Post extends Model
         'image_url',
         'image_public_id',
         'text',
-        'category_id'
+        'category_id',
+        'user_id'
     ];
 
     protected static function booted()
@@ -33,8 +34,20 @@ class Post extends Model
         });
     }
 
+    /**
+     * Get the category that owns the post.
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the user that owns the post.
+     * 
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

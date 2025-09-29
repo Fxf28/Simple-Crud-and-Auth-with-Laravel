@@ -36,6 +36,9 @@
                                         Category
                                     </th>
                                     <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        Author
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         Date
                                     </th>
                                     <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -77,6 +80,14 @@
                                             {{ $post->category->name ?? 'Uncategorized' }}
                                         </span>
                                     </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                        <div class="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            {{ $post->user->name ?? 'Unknown Author' }}
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         {{ $post->created_at->format('M d, Y') }}
                                     </td>
@@ -93,36 +104,44 @@
                                                 </svg>
                                             </a>
 
-                                            <!-- Edit Button -->
+                                            <!-- Edit Button - Hanya untuk pemilik post atau admin -->
+                                            @auth
+                                            @if($post->user_id === auth()->id() || auth()->user()->is_admin)
                                             <a href="{{ route('posts.edit', $post) }}"
                                                 class="inline-flex items-center p-2 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 
-                                                       transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                                                title="Edit Post">
+                                                           transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                title="{{ auth()->user()->is_admin && $post->user_id !== auth()->id() ? 'Edit as Admin' : 'Edit Post' }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
+                                            @endif
+                                            @endauth
 
-                                            <!-- Delete Button -->
+                                            <!-- Delete Button - Hanya untuk pemilik post atau admin -->
+                                            @auth
+                                            @if($post->user_id === auth()->id() || auth()->user()->is_admin)
                                             <form method="POST" action="{{ route('posts.destroy', $post) }}" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
                                                     onclick="return confirm('Are you sure you want to delete this post?')"
                                                     class="inline-flex items-center p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 
-                                                           transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                                                    title="Delete Post">
+                                                               transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                    title="{{ auth()->user()->is_admin && $post->user_id !== auth()->id() ? 'Delete as Admin' : 'Delete Post' }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
                                             </form>
+                                            @endif
+                                            @endauth
                                         </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center">
+                                    <td colspan="6" class="px-6 py-8 text-center">
                                         <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
