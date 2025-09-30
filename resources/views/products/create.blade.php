@@ -18,7 +18,7 @@
                         </ul>
                     </div>
                     @endif
-                    <form method="POST" action="{{ route('categories.store') }}">
+                    <form method="POST" action="{{ route('products.store') }}">
                         @csrf
 
                         {{-- Input Name --}}
